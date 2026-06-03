@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_microservices
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=espe
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgresData:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  servicio-paciente:
+    build: ./servicio-paciente
+    container_name: servicio_paciente
+    restart: always
+    environment:
+      - DB_NAME=paciente
+      - DB_USER=postgres
+      - DB_PASSWORD=espe
+      - DB_HOST=postgres
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+  servicio-medico:
+    build: ./servicio-medico
+    container_name: servicio_medico
+    restart: always
+    environment:
+      - DB_NAME=medico
+      - DB_USER=postgres
+      - DB_PASSWORD=espe
+      - DB_HOST=postgres
+      - PORT=3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+  servicio-cita:
+    build: ./servicio-cita
+    container_name: servicio_cita
+    restart: always
+    environment:
+      - DB_NAME=cita
+      - DB_USER=postgres
+      - DB_PASSWORD=espe
+      - DB_HOST=postgres
+      - PORT=3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - servicio-paciente
+      - servicio-medico
+
+volumes:
+  postgresData:
